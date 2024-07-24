@@ -1,0 +1,164 @@
+function Togpy:CreateWindow(title)
+    local window = {}
+    
+    -- Create the main window frame
+    window.frame = Instance.new("Frame")
+    window.frame.Size = UDim2.new(0, 400, 0, 300)
+    window.frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    window.frame.BackgroundColor3 = Togpy.CurrentTheme.Primary
+    window.frame.Parent = game.Players.LocalPlayer.PlayerGui.ScreenGui
+    
+    -- Create the title label
+    window.title = Instance.new("TextLabel")
+    window.title.Text = title
+    window.title.Font = Enum.Font.SourceSans
+    window.title.TextSize = 24
+    window.title.TextColor3 = Togpy.CurrentTheme.Secondary
+    window.title.Parent = window.frame
+    
+    -- Store tabs in the window
+    window.tabs = {}
+
+    -- Function to add a tab
+    function window:AddTab(tabName)
+        local tab = {}
+        tab.name = tabName
+        tab.sections = {}
+        
+        -- Add the tab to the window's tab list
+        table.insert(window.tabs, tab)
+        
+        -- Function to add a section to the tab
+        function tab:AddSection(sectionName)
+            local section = {}
+            section.name = sectionName
+            section.elements = {}
+            
+            -- Add the section to the tab's section list
+            table.insert(tab.sections, section)
+            
+            -- Function to add a button to the section
+            function section:AddButton(text, callback)
+                local button = Instance.new("TextButton")
+                button.Text = text
+                button.Font = Enum.Font.SourceSans
+                button.TextSize = 18
+                button.TextColor3 = Togpy.CurrentTheme.Tertiary
+                button.BackgroundColor3 = Togpy.CurrentTheme.Secondary
+                button.Parent = window.frame -- Add to window frame for simplicity
+                
+                -- Connect the button click event to the callback function
+                button.MouseButton1Click:Connect(callback)
+                
+                -- Add the button to the section's element list
+                table.insert(section.elements, button)
+            end
+            
+            return section
+        end
+        
+        return tab
+    end
+    
+    return window
+end
+-- Improved Toggle
+function section:AddToggle(text, callback)
+    local toggle = {}
+    toggle.state = false
+    
+    toggle.button = Instance.new("TextButton")
+    toggle.button.Text = text
+    toggle.button.Font = Enum.Font.SourceSans
+    toggle.button.TextSize = 18
+    toggle.button.TextColor3 = Togpy.CurrentTheme.Tertiary
+    toggle.button.BackgroundColor3 = Togpy.CurrentTheme.Secondary
+    toggle.button.Parent = window.frame
+    
+    -- Visual representation of the toggle state
+    local indicator = Instance.new("Frame")
+    indicator.Size = UDim2.new(0, 20, 0, 20)
+    indicator.Position = UDim2.new(1, -30, 0.5, -10)
+    indicator.BackgroundColor3 = toggle.state and Togpy.CurrentTheme.Primary or Togpy.CurrentTheme.Secondary
+    indicator.Parent = toggle.button
+    
+    toggle.button.MouseButton1Click:Connect(function()
+        toggle.state = not toggle.state
+        indicator.BackgroundColor3 = toggle.state and Togpy.CurrentTheme.Primary or Togpy.CurrentTheme.Secondary
+        callback(toggle.state)
+    end)
+    
+    table.insert(section.elements, toggle)
+end
+
+-- Improved Dropdown
+function section:AddDropdown(text, options, callback)
+    local dropdown = {}
+    
+    dropdown.button = Instance.new("TextButton")
+    dropdown.button.Text = text
+    dropdown.button.Font = Enum.Font.SourceSans
+    dropdown.button.TextSize = 18
+    dropdown.button.TextColor3 = Togpy.CurrentTheme.Tertiary
+    dropdown.button.BackgroundColor3 = Togpy.CurrentTheme.Secondary
+    dropdown.button.Parent = window.frame
+    
+    local listFrame = Instance.new("Frame")
+    listFrame.Size = UDim2.new(0, 200, 0, 100)
+    listFrame.Position = UDim2.new(0, 0, 1, 0)
+    listFrame.Visible = false
+    listFrame.Parent = dropdown.button
+    
+    for _, option in ipairs(options) do
+        local optionButton = Instance.new("TextButton")
+        optionButton.Text = option
+        optionButton.Font = Enum.Font.SourceSans
+        optionButton.TextSize = 18
+        optionButton.TextColor3 = Togpy.CurrentTheme.Tertiary
+        optionButton.BackgroundColor3 = Togpy.CurrentTheme.Secondary
+        optionButton.Parent = listFrame
+        
+        optionButton.MouseButton1Click:Connect(function()
+            dropdown.button.Text = text .. ": " .. option
+            listFrame.Visible = false
+            callback(option)
+        end)
+    end
+    
+    dropdown.button.MouseButton1Click:Connect(function()
+        listFrame.Visible = not listFrame.Visible
+    end)
+    
+    table.insert(section.elements, dropdown)
+end
+local function fadeIn(element)
+    element.BackgroundTransparency = 1
+    element.Visible = true
+    local tween = tweenService:Create(element, TweenInfo.new(0.5), {BackgroundTransparency = 0})
+    tween:Play()
+end
+
+local function fadeOut(element)
+    local tween = tweenService:Create(element, TweenInfo.new(0.5), {BackgroundTransparency = 1})
+    tween:Play()
+    tween.Completed:Connect(function()
+        element.Visible = false
+    end)
+end
+function Togpy:Notify(message)
+    local notification = Instance.new("TextLabel")
+    notification.Text = message
+    notification.Font = Enum.Font.SourceSans
+    notification.TextSize = 18
+    notification.TextColor3 = Togpy.CurrentTheme.Secondary
+    notification.BackgroundColor3 = Togpy.CurrentTheme.Primary
+    notification.Size = UDim2.new(0, 200, 0, 50)
+    notification.Position = UDim2.new(0.5, -100, 0, -50)
+    notification.Parent = game.Players.LocalPlayer.PlayerGui.ScreenGui
+    
+    fadeIn(notification)
+    
+    wait(2)
+    
+    fadeOut(notification)
+end
